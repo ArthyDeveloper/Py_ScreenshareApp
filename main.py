@@ -87,8 +87,8 @@ config_webcam = config["Webcam_Settings"]
 langs = {
   "ENG": {
     "MAIN_SCREEN":{
-      "MAIN_TITLE": "Scalie",
-      "SAVED_CONNECTIONS_TITLE": "Saved Contacts",
+      "MAIN_TITLE":"Scalie",
+      "STOP_HOSTING":"Stop",
       "STREAM_TYPE": {
         "0":"Choose Type",
         "1":"Entire Screen",
@@ -126,6 +126,10 @@ langs = {
       "WEBCAMS":"Webcams",
       "WEBCAM_ON_STREAM_AND_SIZE":"On Stream | Size",
       "SNAP_TO_CORNER":"Snap to Corner",
+      "UPPER_LEFT":"Upper Left",
+      "UPPER_RIGHT":"Upper Right",
+      "LOWER_LEFT":"Lower Left",
+      "LOWER_RIGHT":"Lower Right",
       "POSITION_X":"Position X",
       "POSITION_Y":"Position Y",
       "ENABLE_CROPPING":"Enable Cropping",
@@ -135,12 +139,69 @@ langs = {
       "CROP_RIGHT":"Crop Right",
     },
     "SAVED_CONTACTS":{
+      "SAVED_CONNECTIONS_TITLE":"Saved Contacts",
       "CONTACT_NAME":"Contact Name",
       "CONTACT_IP":"IP Address"
     }
   },
   "BR": {
-
+    "MAIN_SCREEN":{
+      "MAIN_TITLE": "Scalie",
+      "STOP_HOSTING":"Parar",
+      "STREAM_TYPE": {
+        "0":"Escolha...",
+        "1":"Tela Inteira",
+        "2":"Janela Específica",
+        "3":"Somente Webcam"
+        },
+      "STREAM_IP_PLACEHOLDER": "Digite o IP",
+    },
+    "HOST_SETTINGS":{
+      "HOST_SETTINGS_TITLE": "Configurações do Host",
+      "SERVER_PORT":"Port Number",
+      "STREAM_FPS":"FPS da Stream",
+      "FPS_OPTIONS": {
+        "0":"Fim da linha (5)",
+        "1":"Última tentativa (10)",
+        "2":"Tropeçandinho (15)",
+        "3":"Stop Motion (20)",
+        "4":"Cinemático (25)",
+        "5":"Normal (30)",
+        "6":"Alto (60)",
+        "7":"GLaDOS (144)",
+      },
+      "RESOLUTION":"Resolução",
+      "RESOLUTION_WIDTH_PLACEHOLDER":"Largura",
+      "RESOLUTION_HEIGHT_PLACEHOLDER":"Altura",
+      "SHOW_CURSOR":"Mostrar Cursor",
+      "WINDOWS_TO_STREAM":"Janela Específica",
+      "WINDOWS_TO_STREAM_DEFAULT":"Nenhuma",
+      "MONITOR":"Monitor",
+      "LANGUAGES":"Linguagens",
+      "SAVE_SETTINGS_BUTTON":"Salvar",
+    },
+    "WEBCAM_SETTINGS":{
+      "WEBCAM_SETTINGS_TITLE": "Configurações da Webcam",
+      "WEBCAMS":"Webcams",
+      "WEBCAM_ON_STREAM_AND_SIZE":"Sobre Stream | Tamanho",
+      "SNAP_TO_CORNER":"Fixar nos Cantos",
+      "UPPER_LEFT":"Upper Left",
+      "UPPER_RIGHT":"Upper Right",
+      "LOWER_LEFT":"Lower Left",
+      "LOWER_RIGHT":"Lower Right",
+      "POSITION_X":"Posição X",
+      "POSITION_Y":"Posição Y",
+      "ENABLE_CROPPING":"Habilitar Cropping",
+      "CROP_TOP":"Croppar Topo",
+      "CROP_BOTTOM":"Croppar Baixo",
+      "CROP_LEFT":"Croppar Esquerda",
+      "CROP_RIGHT":"Croppar Direita",
+    },
+    "SAVED_CONTACTS":{
+      "SAVED_CONNECTIONS_TITLE": "Contatos Salvos",
+      "CONTACT_NAME":"Nome do Contato",
+      "CONTACT_IP":"Endereço IP"
+    }
   }
 }
 
@@ -192,9 +253,9 @@ test_var = "Hello World!"
 # #00cc00 GREEN
 # #d95 Yellow / Orange
 
-# -----------------
+# ----------------------------------------------------
 # Main App
-# -----------------
+# ----------------------------------------------------
 class ScreenshareApp(QMainWindow):
   update_image_signal = pyqtSignal(str, QImage)
   remove_stream_signal = pyqtSignal(str)
@@ -255,7 +316,7 @@ class ScreenshareApp(QMainWindow):
 
     # Dropdown stream type
     stream_combobox = QComboBox()
-    stream_combobox.addItems(["Choose Type", "Entire Screen", "Specific Window", "Webcam Only"])
+    stream_combobox.addItems([lang["MAIN_SCREEN"]["STREAM_TYPE"]["0"], lang["MAIN_SCREEN"]["STREAM_TYPE"]["1"], lang["MAIN_SCREEN"]["STREAM_TYPE"]["2"], lang["MAIN_SCREEN"]["STREAM_TYPE"]["3"]])
     stream_combobox.currentIndexChanged.connect(self.stream_type)
 
     # Settings button
@@ -299,7 +360,7 @@ class ScreenshareApp(QMainWindow):
     # IP Input
     self.ip = ""
     self.ip_input = QLineEdit()
-    self.ip_input.setPlaceholderText("Type stream IP")
+    self.ip_input.setPlaceholderText(lang["MAIN_SCREEN"]["STREAM_IP_PLACEHOLDER"])
     self.ip_input.setMaximumWidth(110)
     self.ip_input.textChanged.connect(lambda text: setattr(self, 'ip', text))
 
@@ -323,7 +384,6 @@ class ScreenshareApp(QMainWindow):
     # Container horizontal principal que vai segurar os blocos
     streams_container = QHBoxLayout()
     streams_container.setSpacing(10)
-    # Define margens zeradas nas bordas laterais e inferiores para colar nas extremidades
     streams_container.setContentsMargins(5, 5, 5, 5) 
 
     # Inicialização limpa das colunas esquerda e direita
@@ -340,7 +400,6 @@ class ScreenshareApp(QMainWindow):
     streams_container.addLayout(self.main_stream_container, 4)
     streams_container.addLayout(self.mini_streams_container, 1)
 
-    # Adiciona a barra do topo ao layout raiz
     main_layout.addLayout(top_bar)
     main_layout.addLayout(streams_container, 1) 
     
@@ -349,14 +408,13 @@ class ScreenshareApp(QMainWindow):
   # ----------------------------------------------------
   # Hosting Functions
   # ----------------------------------------------------
-
   def host(self):
     global IS_HOSTING
     IS_HOSTING = not IS_HOSTING
 
     if IS_HOSTING:
       threading.Thread(target=self.run_server_thread, daemon=True).start()
-      self.host_button.setText("Stop")
+      self.host_button.setText(lang["MAIN_SCREEN"]["STOP_HOSTING"])
       self.host_button.setStyleSheet("#HostButton { background-color: #d9534f; color: white; font-weight: bold; } #HostButton:hover { background-color: #d22f2d }")
     else:
       self.host_button.setText("Host")
@@ -379,7 +437,7 @@ class ScreenshareApp(QMainWindow):
     def process_frame(raw_frame, m_x, m_y, monitor_info, is_webcam=False, offset_x=0, offset_y=0, raw_webcam=None):
       global SHOW_CURSOR, WEBCAM_WIDTH, WEBCAM_HEIGHT, WEBCAM_DEFAULT_POS, WEBCAM_DEFAULT_POS_ENABLED, WEBCAM_X, WEBCAM_Y
       if raw_frame is None:
-          return None
+        return None
           
       frame = np.array(raw_frame, dtype=np.uint8)
       
@@ -389,19 +447,19 @@ class ScreenshareApp(QMainWindow):
 
       # Desenha o cursor apenas se estiver transmitindo a tela inteira
       if SHOW_CURSOR and not is_webcam:
-          m_x_rel = m_x - monitor_info["left"] - offset_x
-          m_y_rel = m_y - monitor_info["top"] - offset_y
+        m_x_rel = m_x - monitor_info["left"] - offset_x
+        m_y_rel = m_y - monitor_info["top"] - offset_y
 
-          # Garante que o desenho aconteça apenas se o mouse estiver dentro da janela transmitida
-          if 0 <= m_x_rel < frame.shape[1] and 0 <= m_y_rel < frame.shape[0]:
-            cursor_pts = np.array([
-              [m_x_rel, m_y_rel],
-              [m_x_rel + 15, m_y_rel + 15],
-              [m_x_rel + 5, m_y_rel + 17]
-            ], np.int32)
-            
-            cv2.fillPoly(frame, [cursor_pts], (255, 255, 255))
-            cv2.polylines(frame, [cursor_pts], True, (0, 0, 0), 1)
+        # Garante que o desenho aconteça apenas se o mouse estiver dentro da janela transmitida
+        if 0 <= m_x_rel < frame.shape[1] and 0 <= m_y_rel < frame.shape[0]:
+          cursor_pts = np.array([
+            [m_x_rel, m_y_rel],
+            [m_x_rel + 15, m_y_rel + 15],
+            [m_x_rel + 5, m_y_rel + 17]
+          ], np.int32)
+          
+          cv2.fillPoly(frame, [cursor_pts], (255, 255, 255))
+          cv2.polylines(frame, [cursor_pts], True, (0, 0, 0), 1)
 
       if raw_webcam is not None:
         global WEBCAM_ON_STREAM_SIZE
@@ -456,7 +514,7 @@ class ScreenshareApp(QMainWindow):
           pass
 
       global STREAM_RES
-      frame = cv2.resize(frame, (STREAM_RES[0], STREAM_RES[1]))
+      frame = cv2.resize(frame, (int(STREAM_RES[0]), int(STREAM_RES[1])))
       _, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 60])
       return buffer.tobytes()
 
@@ -541,14 +599,14 @@ class ScreenshareApp(QMainWindow):
               win = None
               
               # Se o usuário escolheu uma janela nas configurações, busca ela pelo título exato
-              if SELECTED_WINDOW_TITLE and SELECTED_WINDOW_TITLE != "None":
+              if SELECTED_WINDOW_TITLE and SELECTED_WINDOW_TITLE != "None" or SELECTED_WINDOW_TITLE and SELECTED_WINDOW_TITLE != "Nenhuma":
                 windows = gw.getWindowsWithTitle(SELECTED_WINDOW_TITLE)
                 if windows and len(windows) > 0:
                   win = windows[0]  # Pega a primeira janela correspondente encontrada
               
               # Se não houver janela salva ou ela foi fechada, recorre à janela ativa como backup
               if win is None:
-                  win = gw.getActiveWindow()
+                win = gw.getActiveWindow()
 
               if win and win.width > 10 and win.height > 10:
                 # Se a janela estiver minimizada, avisa no console ou pula o frame
@@ -632,7 +690,6 @@ class ScreenshareApp(QMainWindow):
   # ----------------------------------------------------
   # Watch Functions
   # ----------------------------------------------------
-  
   def start_watching(self):
     if not self.ip:
       return
@@ -648,7 +705,6 @@ class ScreenshareApp(QMainWindow):
     # Dispara a thread de rede em segundo plano
     threading.Thread(target=self.run_watch_thread, args=(ip,), daemon=True).start()
     
-    # RESETS OBRIGATÓRIOS: Limpa tudo para a interface gráfica ficar pronta para o próximo IP
     self.ip_input.clear()
     self.ip = ""
 
@@ -659,7 +715,8 @@ class ScreenshareApp(QMainWindow):
   def close_stream(self, ip):
     if ip in self.active_streams:
       if self.focused_ip == ip:
-        self.focused_ip = None # Reseta o foco para a fila padrão de segurança
+        self.focused_ip = None
+
       widget = self.active_streams[ip]
       self.main_stream_container.removeWidget(widget)
       widget.setParent(None)
@@ -682,7 +739,6 @@ class ScreenshareApp(QMainWindow):
     # Captura os IPs ativos
     lista_ips = list(self.active_streams.keys())
     
-    # CORREÇÃO: Se a lista estiver vazia (desconexão ou erro), interrompe com segurança
     if not lista_ips:
       return
 
@@ -745,12 +801,9 @@ class ScreenshareApp(QMainWindow):
     except Exception as e:
       print(f"Não foi possível conectar ao host {ip} (O Host está ligado?): {e}")
     finally:
-      # SÓ solicita a destruição se a conexão chegou a existir antes de cair.
-      # Se o host nunca esteve online, removemos apenas do dicionário de forma limpa.
       if is_connected:
         self.handle_close_request(ip)
       else:
-        # Se falhou de primeira, remove a tela fantasma sem quebrar a interface gráfica
         self.remove_stream_signal.emit(ip)
     
   @pyqtSlot(str, QImage)
@@ -761,7 +814,6 @@ class ScreenshareApp(QMainWindow):
   # ----------------------------------------------------
   # Other Functions
   # ----------------------------------------------------
-
   def stream_type(self, stream_type_idx):
     global STREAM_TYPE
     STREAM_TYPE = stream_type_idx
@@ -800,9 +852,9 @@ class ScreenshareApp(QMainWindow):
     except Exception:
       return "127.0.0.1"
 
-# -----------------
+# ----------------------------------------------------
 # Settings Window
-# -----------------
+# ----------------------------------------------------
 class SettingsWindow(QWidget):
   def __init__(self):
     super().__init__()
@@ -810,29 +862,30 @@ class SettingsWindow(QWidget):
     self.screen_width, self.screen_height = pyautogui.size()
     self.app_width, self.app_height = (round(self.screen_width*0.35), round(self.screen_height*0.55))
 
-    self.setWindowTitle("Host Settings")
+    self.setWindowTitle(lang["HOST_SETTINGS"]["HOST_SETTINGS_TITLE"])
     self.setGeometry(self.screen_width//2-self.app_width//2, self.screen_height//2-self.app_height//2, self.app_width, self.app_height)
     
     # Global styles
     self.setStyleSheet("""
-        #SettingsWidget { background-color: #262626; }
-        QLabel { color: white; font-size: 14px; }
-        QLineEdit { background-color: #333; color: white; border: 1px solid #555; padding: 4px; border-radius: 4px; }
-        QPushButton { background-color: #444; color: white; border: None; padding: 6px 12px; border-radius: 4px; }
-        QComboBox { background-color: #444; color: white; border: None; padding: 6px 8px; border-radius: 4px; }
-        QPushButton:hover { background-color: #555; }
-        QCheckBox { color: white; font-size: 14px; }
+      #SettingsWidget { background-color: #262626; }
+      QLabel { color: white; font-size: 14px; }
+      QLineEdit { background-color: #333; color: white; border: 1px solid #555; padding: 4px; border-radius: 4px; }
+      QPushButton { background-color: #444; color: white; border: None; padding: 6px 12px; border-radius: 4px; }
+      QComboBox { background-color: #444; color: white; border: None; padding: 6px 8px; border-radius: 4px; }
+      QPushButton:hover { background-color: #555; }
+      QCheckBox { color: white; font-size: 14px; }
     """)
 
     # Main Layout (Vertical)
     main_layout = QVBoxLayout()
     main_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-    main_layout.setSpacing(15) # Vertical spacing between settings
+    main_layout.setSpacing(15)
 
     # Title
+    """
     self.label = QLabel("Settings")
     self.label.setStyleSheet("font-size: 18px; font-weight: bold; margin-bottom: 10px;")
-    main_layout.addWidget(self.label)
+    main_layout.addWidget(self.label)"""
 
     # ----------------------------------------------------
     # Setting 1: Connection Port
@@ -840,7 +893,7 @@ class SettingsWindow(QWidget):
     global DEFAULT_PORT
     row1_layout = QHBoxLayout()
     
-    row1_label = QLabel("Server Port")
+    row1_label = QLabel(lang["HOST_SETTINGS"]["SERVER_PORT"])
     self.connection_port = QLineEdit()
     #self.connection_port.setPlaceholderText(f"Default {DEFAULT_PORT}")
     self.connection_port.setText(str(DEFAULT_PORT))
@@ -858,20 +911,20 @@ class SettingsWindow(QWidget):
     global IDX_FPS_TARGET
     stream_fps_layout = QHBoxLayout()
     
-    row2_label = QLabel("Stream FPS")
+    row2_label = QLabel(lang["HOST_SETTINGS"]["STREAM_FPS"])
     self.fps_combobox = QComboBox()
-    self.fps_combobox.addItems(["Hopeless (5)",
-                                "Last Measure (10)",
-                                "Tripping Over (15)",
-                                "Stop Motion (20)",
-                                "Cinematic (25)",
-                                "Normal (30)",
-                                "High (60)",
-                                "GLaDOS (144)"])
+    self.fps_combobox.addItems([lang["HOST_SETTINGS"]["FPS_OPTIONS"]["0"],
+                                lang["HOST_SETTINGS"]["FPS_OPTIONS"]["1"],
+                                lang["HOST_SETTINGS"]["FPS_OPTIONS"]["2"],
+                                lang["HOST_SETTINGS"]["FPS_OPTIONS"]["3"],
+                                lang["HOST_SETTINGS"]["FPS_OPTIONS"]["4"],
+                                lang["HOST_SETTINGS"]["FPS_OPTIONS"]["5"],
+                                lang["HOST_SETTINGS"]["FPS_OPTIONS"]["6"],
+                                lang["HOST_SETTINGS"]["FPS_OPTIONS"]["7"]])
     self.fps_combobox.setCurrentIndex(IDX_FPS_TARGET)
     
     stream_fps_layout.addWidget(row2_label)
-    stream_fps_layout.addStretch() # Empurra o botão para o canto direito
+    stream_fps_layout.addStretch()
     stream_fps_layout.addWidget(self.fps_combobox)
     
     main_layout.addLayout(stream_fps_layout)
@@ -881,14 +934,14 @@ class SettingsWindow(QWidget):
     # ----------------------------------------------------
     global STREAM_RES
     stream_res_layout = QHBoxLayout()
-    stream_res_label = QLabel("Resolution")
+    stream_res_label = QLabel(lang["HOST_SETTINGS"]["RESOLUTION"])
     self.stream_res_width = QLineEdit()
-    self.stream_res_width.setPlaceholderText("Width")
+    self.stream_res_width.setPlaceholderText(lang["HOST_SETTINGS"]["RESOLUTION_WIDTH_PLACEHOLDER"])
     self.stream_res_width.setFixedWidth(80)
     self.stream_res_width.setText(str(STREAM_RES[0]))
     stream_res_label2 = QLabel("X")
     self.stream_res_height = QLineEdit()
-    self.stream_res_height.setPlaceholderText("Height")
+    self.stream_res_height.setPlaceholderText(lang["HOST_SETTINGS"]["RESOLUTION_HEIGHT_PLACEHOLDER"])
     self.stream_res_height.setFixedWidth(80)
     self.stream_res_height.setText(str(STREAM_RES[1]))
 
@@ -905,7 +958,7 @@ class SettingsWindow(QWidget):
     global SHOW_CURSOR
     cursor_layout = QHBoxLayout()
 
-    cursor_label = QLabel("Show Cursor")
+    cursor_label = QLabel(lang["HOST_SETTINGS"]["SHOW_CURSOR"])
     self.show_cursor_checkbox = QCheckBox()
 
     self.show_cursor_checkbox.setChecked(True) if SHOW_CURSOR else self.show_cursor_checkbox.setChecked(False)
@@ -921,12 +974,12 @@ class SettingsWindow(QWidget):
     # ----------------------------------------------------
     global SELECTED_WINDOW_TITLE
     specific_window_layout = QHBoxLayout()
-    specific_window_label = QLabel("Windows To Stream")
+    specific_window_label = QLabel(lang["HOST_SETTINGS"]["WINDOWS_TO_STREAM"])
     self.specific_window_combobox = QComboBox()
     
     # Coleta todos os títulos de janelas abertas e filtra strings vazias do Windows
     raw_titles = gw.getAllTitles()
-    filtered_titles = ["None"] + [t for t in raw_titles if t.strip()]
+    filtered_titles = [lang["HOST_SETTINGS"]["WINDOWS_TO_STREAM_DEFAULT"]] + [t for t in raw_titles if t.strip()]
     self.specific_window_combobox.addItems(filtered_titles)
     
     # Restaura a seleção anterior se houver
@@ -944,7 +997,7 @@ class SettingsWindow(QWidget):
     # ----------------------------------------------------
     global SELECTED_MONITOR
     monitor_layout = QHBoxLayout()
-    monitor_label = QLabel("Monitor")
+    monitor_label = QLabel(lang["HOST_SETTINGS"]["MONITOR"])
     self.monitor_combobox = QComboBox()
     monitors = mss.mss().monitors[1:]
 
@@ -962,7 +1015,7 @@ class SettingsWindow(QWidget):
     # Setting 6: Selected Language
     # ----------------------------------------------------
     language_layout = QHBoxLayout()
-    language_label = QLabel("Language")
+    language_label = QLabel(lang["HOST_SETTINGS"]["LANGUAGES"])
     self.languages =  QComboBox()
     self.languages.addItems(["ENG", "BR"])
     current_language = config_software["LANGUAGE"]
@@ -982,7 +1035,7 @@ class SettingsWindow(QWidget):
     # ----------------------------------------------------
     main_layout.addStretch()
 
-    update_button = QPushButton("Update")
+    update_button = QPushButton(lang["HOST_SETTINGS"]["SAVE_SETTINGS_BUTTON"])
     update_button.setCursor(Qt.CursorShape.PointingHandCursor)
     update_button.clicked.connect(self.update_settings)
 
@@ -1035,7 +1088,7 @@ class WebcamSettingsWindow(QWidget):
     self.screen_width, self.screen_height = pyautogui.size()
     self.app_width, self.app_height = (round(self.screen_width*0.45), round(self.screen_height*0.75))
 
-    self.setWindowTitle("Webcam Settings")
+    self.setWindowTitle(lang["WEBCAM_SETTINGS"]["WEBCAM_SETTINGS_TITLE"])
     self.setGeometry(self.screen_width//2-self.app_width//2, self.screen_height//2-self.app_height//2, self.app_width, self.app_height)
     
     # Global styles
@@ -1055,16 +1108,16 @@ class WebcamSettingsWindow(QWidget):
     main_layout.setSpacing(15) # Vertical spacing between settings
 
     # Title
-    self.label = QLabel("Webcam")
-    self.label.setStyleSheet("font-size: 18px; font-weight: bold; margin-bottom: 10px;")
-    main_layout.addWidget(self.label)
+    #self.label = QLabel("Webcam")
+    #self.label.setStyleSheet("font-size: 18px; font-weight: bold; margin-bottom: 10px;")
+    #main_layout.addWidget(self.label)
 
     # ----------------------------------------------------
     # Setting 1: Webcams
     # ----------------------------------------------------
     global SELECTED_WEBCAM
     row1_layout = QHBoxLayout()
-    row3_label = QLabel("Webcams")
+    row3_label = QLabel(lang["WEBCAM_SETTINGS"]["WEBCAMS"])
     self.row1_webcams_combobox = QComboBox()
     
     # Busca e popula o combobox com as câmeras ativas via enumerador
@@ -1094,7 +1147,7 @@ class WebcamSettingsWindow(QWidget):
     # ----------------------------------------------------
     global WEBCAM_ON_STREAM, WEBCAM_ON_STREAM_SIZE
     row2_layout = QHBoxLayout()
-    row2_label = QLabel("On Stream / Size")
+    row2_label = QLabel(lang["WEBCAM_SETTINGS"]["WEBCAM_ON_STREAM_AND_SIZE"])
     self.row2_checkbox = QCheckBox()
     self.row2_checkbox.setChecked(WEBCAM_ON_STREAM)
 
@@ -1114,19 +1167,17 @@ class WebcamSettingsWindow(QWidget):
 
     main_layout.addLayout(row2_layout)
 
-
-
     # ----------------------------------------------------
     # Setting 3: Webcam Default Corner Positions
     # ----------------------------------------------------
     global WEBCAM_DEFAULT_POS_ENABLED, WEBCAM_DEFAULT_POS
 
     row3_layout = QHBoxLayout()
-    row3_label = QLabel("Snap to Corner")
+    row3_label = QLabel(lang["WEBCAM_SETTINGS"]["SNAP_TO_CORNER"])
     self.row3_checkbox = QCheckBox()
     self.row3_checkbox.setChecked(WEBCAM_DEFAULT_POS_ENABLED)
     self.row3_combobox_positions = QComboBox()
-    self.row3_combobox_positions.addItems(["Upper Left", "Upper Right", "Down Left", "Down Right"])
+    self.row3_combobox_positions.addItems([lang["WEBCAM_SETTINGS"]["UPPER_LEFT"], lang["WEBCAM_SETTINGS"]["UPPER_RIGHT"], lang["WEBCAM_SETTINGS"]["LOWER_LEFT"], lang["WEBCAM_SETTINGS"]["LOWER_RIGHT"]])
 
     row3_layout.addWidget(row3_label)
     row3_layout.addStretch()
@@ -1142,7 +1193,7 @@ class WebcamSettingsWindow(QWidget):
 
     row4_layout = QHBoxLayout()
     row4_layout.setSpacing(5)
-    row4_label = QLabel("Pos X")
+    row4_label = QLabel(lang["WEBCAM_SETTINGS"]["POSITION_X"])
     row4_minus_100 = QPushButton("-100")
     row4_minus_10 = QPushButton("-10")
     row4_minus_1 = QPushButton("-1")
@@ -1184,7 +1235,7 @@ class WebcamSettingsWindow(QWidget):
     
     row5_layout = QHBoxLayout()
     row5_layout.setSpacing(5)
-    row5_label = QLabel("Pos Y")
+    row5_label = QLabel(lang["WEBCAM_SETTINGS"]["POSITION_Y"])
     row5_minus_100 = QPushButton("-100")
     row5_minus_10 = QPushButton("-10")
     row5_minus_1 = QPushButton("-1")
@@ -1224,7 +1275,7 @@ class WebcamSettingsWindow(QWidget):
     # ----------------------------------------------------
     global WEBCAM_CROP_ENABLED, W_CROP_RIGHT, W_CROP_LEFT
     row7_layout = QHBoxLayout()
-    row7_label = QLabel("Enable Cropping")
+    row7_label = QLabel(lang["WEBCAM_SETTINGS"]["ENABLE_CROPPING"])
     self.row7_checkbox = QCheckBox()
     self.row7_checkbox.setChecked(WEBCAM_CROP_ENABLED)
     self.row7_checkbox.clicked.connect(self.enable_crop)
@@ -1239,7 +1290,7 @@ class WebcamSettingsWindow(QWidget):
     # ----------------------------------------------------
     global W_CROP_TOP
     row8_layout = QHBoxLayout()
-    row8_label = QLabel("Crop Top")
+    row8_label = QLabel(lang["WEBCAM_SETTINGS"]["CROP_TOP"])
     self.row8_slider = QSlider(Qt.Orientation.Horizontal)
     self.row8_slider.setRange(0, 100)
     self.row8_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
@@ -1259,7 +1310,7 @@ class WebcamSettingsWindow(QWidget):
     # ----------------------------------------------------
     global W_CROP_BOTTOM
     row9_layout = QHBoxLayout()
-    row9_label = QLabel("Crop Bottom")
+    row9_label = QLabel(lang["WEBCAM_SETTINGS"]["CROP_BOTTOM"])
     self.row9_slider = QSlider(Qt.Orientation.Horizontal)
     self.row9_slider.setRange(0, 100)
     self.row9_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
@@ -1279,7 +1330,7 @@ class WebcamSettingsWindow(QWidget):
     # ----------------------------------------------------
     global W_CROP_LEFT
     row10_layout = QHBoxLayout()
-    row10_label = QLabel("Crop Left")
+    row10_label = QLabel(lang["WEBCAM_SETTINGS"]["CROP_LEFT"])
     self.row10_slider = QSlider(Qt.Orientation.Horizontal)
     self.row10_slider.setRange(0, 100)
     self.row10_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
@@ -1299,7 +1350,7 @@ class WebcamSettingsWindow(QWidget):
     # ----------------------------------------------------
     global W_CROP_RIGHT
     row11_layout = QHBoxLayout()
-    row11_label = QLabel("Crop Right")
+    row11_label = QLabel(lang["WEBCAM_SETTINGS"]["CROP_RIGHT"])
     self.row11_slider = QSlider(Qt.Orientation.Horizontal)
     self.row11_slider.setRange(0, 100)
     self.row11_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
@@ -1319,7 +1370,7 @@ class WebcamSettingsWindow(QWidget):
     # ----------------------------------------------------
     main_layout.addStretch()
 
-    update_button = QPushButton("Update")
+    update_button = QPushButton(lang["HOST_SETTINGS"]["SAVE_SETTINGS_BUTTON"])
     update_button.setCursor(Qt.CursorShape.PointingHandCursor)
     update_button.clicked.connect(self.update_settings)
 
@@ -1488,7 +1539,7 @@ class SavedConnections(QWidget):
     self.screen_width, self.screen_height = pyautogui.size()
     self.app_width, self.app_height = (round(self.screen_width*0.3), round(self.screen_height*0.5))
 
-    self.setWindowTitle("Saved IP's")
+    self.setWindowTitle(lang["SAVED_CONTACTS"]["SAVED_CONNECTIONS_TITLE"])
     self.setGeometry(self.screen_width//2-self.app_width//2, self.screen_height//2-self.app_height//2, self.app_width, self.app_height)
     #self.setMaximumWidth(250)
     #self.setMinimumWidth(250)
@@ -1511,9 +1562,9 @@ class SavedConnections(QWidget):
     main_layout.setSpacing(15) # Vertical spacing between settings
 
     # Title
-    self.label = QLabel("Saved Connections")
-    self.label.setStyleSheet("font-size: 18px; font-weight: bold; margin-bottom: 10px;")
-    main_layout.addWidget(self.label)
+    #self.label = QLabel("Saved Connections")
+    #self.label.setStyleSheet("font-size: 18px; font-weight: bold; margin-bottom: 10px;")
+    #main_layout.addWidget(self.label)
 
     # ----------------------------------------------------
     # Setting 1: IP Saver
@@ -1521,9 +1572,9 @@ class SavedConnections(QWidget):
     row1_layout = QHBoxLayout()
     row1_layout.setSpacing(5)
     self.ip_name_input = QLineEdit()
-    self.ip_name_input.setPlaceholderText("IP Name")
+    self.ip_name_input.setPlaceholderText(lang["SAVED_CONTACTS"]["CONTACT_NAME"])
     self.ip_input = QLineEdit()
-    self.ip_input.setPlaceholderText("IP Address")
+    self.ip_input.setPlaceholderText(lang["SAVED_CONTACTS"]["CONTACT_IP"])
     save_button = QPushButton("💾")
     save_button.clicked.connect(self.save_ip)
     save_button.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -1549,7 +1600,7 @@ class SavedConnections(QWidget):
       remove_ip_button = self.return_delete_button()
       remove_ip_button.clicked.connect(partial(self.del_ip, saved_item["ip"]))
 
-      row2_sublayout.addWidget(QLabel(f"{saved_item["ip"]} | {saved_item["name"]}"))
+      row2_sublayout.addWidget(QLabel(f"{saved_item['ip']} | {saved_item['name']}"))
       row2_sublayout.addStretch()
       row2_sublayout.addWidget(copy_ip_button)
       row2_sublayout.addWidget(remove_ip_button)
@@ -1590,7 +1641,7 @@ class SavedConnections(QWidget):
       remove_ip_button = self.return_delete_button()
       remove_ip_button.clicked.connect(partial(self.del_ip, saved_item["ip"]))
 
-      row2_sublayout.addWidget(QLabel(f"{saved_item["ip"]} | {saved_item["name"]}"))
+      row2_sublayout.addWidget(QLabel(f"{saved_item['ip']} | {saved_item['name']}"))
       row2_sublayout.addStretch()
       row2_sublayout.addWidget(copy_ip_button)
       row2_sublayout.addWidget(remove_ip_button)
@@ -1614,7 +1665,7 @@ class SavedConnections(QWidget):
         config.write(configfile)
 
       saved_ip_layout = QHBoxLayout()
-      saved = QLabel(f"{saved_ips[-1]["ip"]} | {saved_ips[-1]["name"]}")
+      saved = QLabel(f"{saved_ips[-1]['ip']} | {saved_ips[-1]['name']}")
 
       copy_ip_button = self.return_copy_button()
       copy_ip_button.clicked.connect(partial(self.copy_ip, ip))
