@@ -11,3 +11,8 @@ For long distance hosting, a VPN like Radmin or Hamachi is needed. The faster an
 There is no plans to include audio to the streams since it would require more hardware power than it already uses and because this tool is just a workaround to a question i don't intend on speaking of here.
 
 If anything breaks "permanently", you can always delete you're config file on %APPDATA%/ArthyDev/Screenshare and reset the app.
+
+## Compiling to .exe
+```
+pyinstaller --collect-submodules=numpy '.\main.py' --onefile --noconsole
+```
