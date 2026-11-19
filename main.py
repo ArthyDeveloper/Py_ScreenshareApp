@@ -87,7 +87,7 @@ config_webcam = config["Webcam_Settings"]
 langs = {
   "ENG": {
     "MAIN_SCREEN":{
-      "MAIN_TITLE":"Scalie",
+      "MAIN_TITLE":"Scaly",
       "STOP_HOSTING":"Stop",
       "STREAM_TYPE": {
         "0":"Choose Type",
@@ -146,7 +146,7 @@ langs = {
   },
   "BR": {
     "MAIN_SCREEN":{
-      "MAIN_TITLE": "Scalie",
+      "MAIN_TITLE": "Scaly",
       "STOP_HOSTING":"Parar",
       "STREAM_TYPE": {
         "0":"Escolha...",
